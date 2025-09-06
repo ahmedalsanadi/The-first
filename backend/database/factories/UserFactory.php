@@ -1,5 +1,4 @@
 <?php
-// database/factories/UserFactory.php
 
 namespace Database\Factories;
 
@@ -14,18 +13,35 @@ class UserFactory extends Factory
 {
     protected static ?string $password;
 
-    // database/factories/UserFactory.php
-
     public function definition(): array
     {
         // Get existing Yemen country or create it if doesn't exist
         $yemen = Country::where('code', 'YE')->first();
-
+        
         if (!$yemen) {
             $yemen = Country::create([
                 'name' => 'Yemen',
                 'code' => 'YE',
                 'phone_code' => '+967',
+                'is_active' => true,
+            ]);
+        }
+
+        // Get a random city in Yemen or create one if none exists
+        $city = City::where('country_id', $yemen->id)->inRandomOrder()->first();
+        if (!$city) {
+            $city = City::create([
+                'name' => 'Sanaa',
+                'country_id' => $yemen->id,
+                'is_active' => true,
+            ]);
+        }
+
+        // Get a random profession or create one if none exists
+        $profession = Profession::inRandomOrder()->first();
+        if (!$profession) {
+            $profession = Profession::create([
+                'name' => 'Developer',
                 'is_active' => true,
             ]);
         }
@@ -41,20 +57,23 @@ class UserFactory extends Factory
             'country_code' => '+967',
             'phone_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'country_id' => $yemen->id, // Use existing country ID
-            'city_id' => City::factory(),
-            'profession_id' => Profession::factory(),
+            'country_id' => $yemen->id,
+            'city_id' => $city->id, // Use existing city ID
+            'profession_id' => $profession->id, // Use existing profession ID
             'birth_date' => $this->faker->dateTimeBetween('-60 years', '-18 years'),
             'gender' => $this->faker->randomElement(['male', 'female']),
             'profile_completion_steps' => ['phone_verified', 'password_set', 'profession_selected'],
             'is_active' => true,
             'remember_token' => Str::random(10),
+            'email_verified_at' => now(),
         ];
     }
+
     public function unverified(): static
     {
         return $this->state(fn(array $attributes) => [
             'phone_verified_at' => null,
+            'email_verified_at' => null,
             'profile_completion_steps' => [],
         ]);
     }
