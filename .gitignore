@@ -1,0 +1,21 @@
+# --- Laravel backend ---
+backend/vendor/
+backend/node_modules/
+backend/storage/*.key
+backend/public/hot
+backend/public/storage
+backend/public/build
+
+# --- Next.js frontend ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build
+frontend/.vercel
+
+# --- Common ---
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
