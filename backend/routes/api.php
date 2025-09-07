@@ -36,3 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::apiResource('ads', AdController::class);
     });
 });
+
+Route::fallback(function () {
+    return response()->json(['message' => 'API resource not found'], 404);
+});
