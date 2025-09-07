@@ -1,0 +1,107 @@
+# API Endpoints
+
+## Authentication Endpoints (`/api/auth/*`)
+
+### 1. **Initiate Registration**
+
+```http
+POST /api/auth/initiate-registration
+Content-Type: application/json
+
+{
+    "phone": "771234567",
+    "country_code": "+967"
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "data": {
+        "exists": false,
+        "otp_sent": true,
+        "method": "sms"
+    },
+    "message": "OTP sent successfully"
+}
+```
+
+### 2. **Verify OTP**
+
+```http
+POST /api/auth/verify-otp
+Content-Type: application/json
+
+{
+    "phone": "771234567",
+    "country_code": "+967",
+    "otp_code": "1234"
+}
+```
+
+### 3. **Set Password**
+
+```http
+POST /api/auth/set-password
+Content-Type: application/json
+
+{
+    "phone": "771234567",
+    "country_code": "+967",
+    "password": "secret123",
+    "password_confirmation": "secret123"
+}
+```
+
+### 4. **Login**
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+    "phone": "771234567",
+    "country_code": "+967",
+    "password": "secret123"
+}
+```
+
+### 5. **Complete Profile**
+
+```http
+POST /api/auth/complete-profile
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "city_id": 1,
+    "profession_id": 1,
+    "birth_date": "1990-01-01",
+    "gender": "male"
+}
+```
+
+### 6. **Get Current User**
+
+```http
+GET /api/auth/me
+Authorization: Bearer {token}
+```
+
+### 7. **Logout**
+
+```http
+POST /api/auth/logout
+Authorization: Bearer {token}
+```
+
+### 8. **Refresh Token**
+
+```http
+POST /api/auth/refresh-token
+Authorization: Bearer {token}
+```
