@@ -19,3 +19,4 @@ Thumbs.db
 *.log
 .env
 .env.*
+Todo/*

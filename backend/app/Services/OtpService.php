@@ -10,24 +10,24 @@ use Illuminate\Support\Facades\Log;
 
 class OtpService
 {
-    public function generateOtp(string $phone, string $countryCode, string $type = 'registration'): array
+    public function generateOtp(string $phone, string $country_code, string $type = 'registration'): array
     {
         // Generate 4-digit OTP
         $otpCode = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
         // Determine method based on country
-        $method = $this->determineOtpMethod($countryCode);
+        $method = $this->determineOtpMethod($country_code);
 
         // Delete any existing OTP for this phone and type
         OtpVerification::where('phone', $phone)
-            ->where('country_code', $countryCode)
+            ->where('country_code', $country_code)
             ->where('type', $type)
             ->delete();
 
         // Create new OTP
         $otp = OtpVerification::create([
             'phone' => $phone,
-            'country_code' => $countryCode,
+            'country_code' => $country_code,
             'otp_code' => $otpCode,
             'type' => $type,
             'method' => $method,
@@ -35,7 +35,7 @@ class OtpService
         ]);
 
         // Send OTP via appropriate method
-        $sent = $this->sendOtp($phone, $countryCode, $otpCode, $method);
+        $sent = $this->sendOtp($phone, $country_code, $otpCode, $method);
 
         return [
             'success' => $sent,
@@ -44,9 +44,9 @@ class OtpService
         ];
     }
 
-    public function verifyOtp(string $phone, string $countryCode, string $otpCode, string $type = 'registration'): bool
+    public function verifyOtp(string $phone, string $country_code, string $otpCode, string $type = 'registration'): bool
     {
-        $otp = OtpVerification::forPhone($phone, $countryCode)
+        $otp = OtpVerification::forPhone($phone, $country_code)
             ->where('type', $type)
             ->where('otp_code', $otpCode)
             ->valid()
@@ -54,7 +54,7 @@ class OtpService
 
         if (!$otp) {
             // Increment attempts for any existing OTP
-            OtpVerification::forPhone($phone, $countryCode)
+            OtpVerification::forPhone($phone, $country_code)
                 ->where('type', $type)
                 ->where('otp_code', $otpCode)
                 ->get()
@@ -67,24 +67,24 @@ class OtpService
         return true;
     }
 
-    private function determineOtpMethod(string $countryCode): string
+    private function determineOtpMethod(string $country_code): string
     {
         // SMS for Yemen, WhatsApp for others
-        return $countryCode === '+967' ? 'sms' : 'whatsapp';
+        return $country_code === '+967' ? 'sms' : 'whatsapp';
     }
 
-    private function sendOtp(string $phone, string $countryCode, string $otpCode, string $method): bool
+    private function sendOtp(string $phone, string $country_code, string $otpCode, string $method): bool
     {
         try {
             if ($method === 'sms') {
-                return $this->sendSms($phone, $countryCode, $otpCode);
+                return $this->sendSms($phone, $country_code, $otpCode);
             } else {
-                return $this->sendWhatsApp($phone, $countryCode, $otpCode);
+                return $this->sendWhatsApp($phone, $country_code, $otpCode);
             }
         } catch (\Exception $e) {
             Log::error('Failed to send OTP', [
                 'phone' => $phone,
-                'country_code' => $countryCode,
+                'country_code' => $country_code,
                 'method' => $method,
                 'error' => $e->getMessage(),
             ]);
@@ -92,7 +92,7 @@ class OtpService
         }
     }
 
-    private function sendSms(string $phone, string $countryCode, string $otpCode): bool
+    private function sendSms(string $phone, string $country_code, string $otpCode): bool
     {
         // Integration with Addon SMS service
         // This is a placeholder - replace with actual Addon API integration
@@ -101,14 +101,14 @@ class OtpService
 
         // TODO: Implement actual SMS sending via Addon
         Log::info('SMS OTP sent', [
-            'phone' => $countryCode . $phone,
+            'phone' => $country_code . $phone,
             'code' => $otpCode,
         ]);
 
         return true; // Simulate success
     }
 
-    private function sendWhatsApp(string $phone, string $countryCode, string $otpCode): bool
+    private function sendWhatsApp(string $phone, string $country_code, string $otpCode): bool
     {
         // Integration with Addon WhatsApp service
         // This is a placeholder - replace with actual Addon API integration
@@ -117,7 +117,7 @@ class OtpService
 
         // TODO: Implement actual WhatsApp sending via Addon
         Log::info('WhatsApp OTP sent', [
-            'phone' => $countryCode . $phone,
+            'phone' => $country_code . $phone,
             'code' => $otpCode,
         ]);
 

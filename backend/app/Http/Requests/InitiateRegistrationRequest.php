@@ -21,8 +21,8 @@ class InitiateRegistrationRequest extends FormRequest
                 'string',
                 'regex:/^[0-9]+$/',
                 function ($attribute, $value, $fail) {
-                    $countryCode = $this->input('country_code');
-                    if ($countryCode === '+967') {
+                    $country_code = $this->input('country_code');
+                    if ($country_code === '+967') {
                         $validPrefixes = ['70', '71', '73', '77', '78'];
                         $prefix = substr($value, 0, 2);
 

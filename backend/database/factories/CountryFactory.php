@@ -11,7 +11,7 @@ class CountryFactory extends Factory
     {
         return [
             'name' => $this->faker->country(),
-            'code' => $this->faker->unique()->countryCode(),
+            'code' => $this->faker->unique()->country_code(),
             'phone_code' => '+' . $this->faker->numberBetween(1, 999),
             'is_active' => true,
         ];
@@ -19,7 +19,7 @@ class CountryFactory extends Factory
 
     public function yemen(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'name' => 'Yemen',
             'code' => 'YE',
             'phone_code' => '+967',
@@ -28,7 +28,7 @@ class CountryFactory extends Factory
 
     public function saudi(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'name' => 'Saudi Arabia',
             'code' => 'SA',
             'phone_code' => '+966',
