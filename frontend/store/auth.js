@@ -1,155 +1,132 @@
 // store/auth.js
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { setToken, getToken, removeToken, setUser as setUserStorage, getUser } from '@/lib/utils/storage';
 import { authApi } from '@/lib/api/auth';
-import { setToken, removeToken, getToken } from '@/lib/utils/storage';
-import toast from 'react-hot-toast';
 
 const useAuthStore = create(
     persist(
         (set, get) => ({
+            // State
             user: null,
             token: null,
             isAuthenticated: false,
-            isLoading: false,
+            isLoading: true,
             registrationData: null,
 
-            // Initialize auth state
-            initialize: () => {
-                const token = getToken();
-                if (token) {
-                    set({ token, isAuthenticated: true });
-                    get().fetchUser();
-                }
-            },
-
-            // Set authentication data
+            // Actions
             setAuth: (user, token) => {
                 setToken(token);
+                setUserStorage(user);
                 set({
                     user,
                     token,
                     isAuthenticated: true,
+                    isLoading: false,
                 });
             },
 
-            // Update user data
             setUser: (user) => {
+                setUserStorage(user);
                 set({ user });
             },
 
-            // Clear authentication
             clearAuth: () => {
                 removeToken();
                 set({
                     user: null,
                     token: null,
                     isAuthenticated: false,
+                    isLoading: false,
                     registrationData: null,
                 });
             },
 
-            // Set registration data (for multi-step registration)
             setRegistrationData: (data) => {
-                set({
-                    registrationData: { ...get().registrationData, ...data },
-                });
+                set((state) => ({
+                    registrationData: { ...state.registrationData, ...data },
+                }));
             },
 
-            // Clear registration data
             clearRegistrationData: () => {
                 set({ registrationData: null });
             },
 
-            // Fetch current user
-            fetchUser: async () => {
+            // Initialize from storage
+            initialize: async () => {
                 try {
-                    set({ isLoading: true });
-                    const response = await authApi.getMe();
-                    if (response.success) {
-                        set({ user: response.data.user });
+                    const token = getToken();
+                    const user = getUser();
+
+                    if (token && user) {
+                        set({
+                            user,
+                            token,
+                            isAuthenticated: true,
+                            isLoading: false,
+                        });
+
+                        // Verify token is still valid by fetching fresh user data
+                        try {
+                            const response = await authApi.getMe();
+                            if (response.success) {
+                                const freshUser = response.data.user;
+                                setUserStorage(freshUser);
+                                set({ user: freshUser });
+                            }
+                        } catch (error) {
+                            // Token invalid, clear auth
+                            console.log('Token verification failed:', error);
+                            get().clearAuth();
+                        }
+                    } else {
+                        set({ isLoading: false });
                     }
                 } catch (error) {
-                    console.error('Failed to fetch user:', error);
-                    get().clearAuth();
-                } finally {
+                    console.error('Initialize error:', error);
                     set({ isLoading: false });
                 }
             },
 
-            // Login
-            login: async (credentials) => {
-                try {
-                    set({ isLoading: true });
-                    const response = await authApi.login(credentials);
-
-                    if (response.success) {
-                        get().setAuth(response.data.user, response.data.token);
-                        toast.success('Login successful!');
-
-                        // Check if profile is complete based on API response
-                        const profileComplete =
-                            response.data.user?.profile_complete || false;
-                        const missingSteps =
-                            response.data.user?.missing_steps || [];
-
-                        return {
-                            success: true,
-                            profileComplete,
-                            missingSteps,
-                        };
-                    }
-                } catch (error) {
-                    const message =
-                        error.response?.data?.message || 'Login failed';
-                    toast.error(message);
-                    throw error;
-                } finally {
-                    set({ isLoading: false });
-                }
+            // Helper methods
+            isProfileComplete: () => {
+                const { user } = get();
+                if (!user) return false;
+                
+                const requiredSteps = ['phone_verified', 'password_set', 'profession_selected'];
+                const completedSteps = user.profile_completion_steps || [];
+                
+                return requiredSteps.every(step => completedSteps.includes(step));
             },
 
-            // Logout
-            logout: async () => {
-                try {
-                    await authApi.logout();
-                } catch (error) {
-                    console.error('Logout error:', error);
-                } finally {
-                    get().clearAuth();
-                    toast.success('Logged out successfully');
-                }
+            getMissingSteps: () => {
+                const { user } = get();
+                if (!user) return [];
+                
+                const requiredSteps = ['phone_verified', 'password_set', 'profession_selected'];
+                const completedSteps = user.profile_completion_steps || [];
+                
+                return requiredSteps.filter(step => !completedSteps.includes(step));
             },
 
-            // Complete profile
-            completeProfile: async (profileData) => {
-                try {
-                    set({ isLoading: true });
-                    const response = await authApi.completeProfile(profileData);
-
-                    if (response.success) {
-                        // Preserve the current token when updating user data
-                        const currentToken = get().token;
-                        return response.data;
-                    }
-                } catch (error) {
-                    const message =
-                        error.response?.data?.message ||
-                        'Failed to update profile';
-                    toast.error(message);
-                    throw error;
-                } finally {
-                    set({ isLoading: false });
-                }
+            getNextRequiredStep: () => {
+                const missingSteps = get().getMissingSteps();
+                if (missingSteps.length === 0) return null;
+                
+                // Return the first missing step
+                const stepMap = {
+                    'phone_verified': '/auth/verify-otp',
+                    'password_set': '/auth/set-password',
+                    'profession_selected': '/auth/complete-profile'
+                };
+                
+                return stepMap[missingSteps[0]] || null;
             },
         }),
         {
             name: 'auth-storage',
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
-                user: state.user,
-                token: state.token,
-                isAuthenticated: state.isAuthenticated,
                 registrationData: state.registrationData,
             }),
         },

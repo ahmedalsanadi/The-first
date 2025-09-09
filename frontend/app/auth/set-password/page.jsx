@@ -1,4 +1,4 @@
-// app/auth/set-password/page.jsx
+// app/auth/set-password/page.jsx - CLEANED UP VERSION
 'use client';
 
 import { useEffect } from 'react';
@@ -20,7 +20,7 @@ import {
 
 export default function SetPasswordPage() {
     const router = useRouter();
-    const { registrationData, isAuthenticated , user } = useAuthStore();
+    const { registrationData, isAuthenticated, user } = useAuthStore();
     const { mutate: setPassword, isPending } = useSetPassword();
 
     const {
@@ -38,60 +38,49 @@ export default function SetPasswordPage() {
 
     const watchedPassword = watch('password');
 
-    // Redirect if already authenticated
+    // Basic redirect logic - let AuthGuard handle the complex logic
     useEffect(() => {
-        if (isAuthenticated) {
-            if (user && !user.profile_complete) {
-                // Let AuthGuard handle the redirection based on missing steps
-                return;
-            }
-            router.push('/dashboard');
+        if (
+            isAuthenticated &&
+            user?.profile_completion_steps?.includes('password_set')
+        ) {
+            // Password already set, let AuthGuard handle redirection
             return;
         }
 
-        // Redirect if no registration data or not verified
-        if (!registrationData?.verified) {
+        // Check if we have registration data for unauthenticated users
+        if (!isAuthenticated && !registrationData?.verified) {
             router.push('/auth/register');
             return;
         }
     }, [isAuthenticated, registrationData, router, user]);
 
     const onSubmit = (data) => {
-        setPassword(
-            {
-                phone: registrationData.phone,
-                country_code: registrationData.country_code,
-                password: data.password,
-                password_confirmation: data.password_confirmation,
-            },
-             // Remove the onSuccess callback - let the hook handle everything
-            // {
-            //     onSuccess: (response) => {
-            //         if (response.data.next_step === 'select_profession') {
-            //             router.push('/auth/select-profession');
-            //         }
-            //         if (response.data.next_step === 'complete-profile') {
-            //             router.push('/auth/complete-profile');
-            //         } else {
-            //             router.push('/auth/login');
-            //         }
-            //     },
-            // },
-        );
+        setPassword({
+            phone: registrationData.phone,
+            country_code: registrationData.country_code,
+            password: data.password,
+            password_confirmation: data.password_confirmation,
+        });
     };
 
-    if (!registrationData?.verified) {
-        return null; // Will redirect
+    // Show loading if we're waiting for proper state
+    if (isAuthenticated && !user) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
-            <Card className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 px-4">
+            <Card className="w-full max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold text-secondary-900">
+                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         Set Your Password
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
                         Create a secure password for your account
                     </CardDescription>
                 </CardHeader>

@@ -7,14 +7,15 @@ import useAuthStore from '@/store/auth';
 
 const publicRoutes = [
     '/auth/login',
-    '/auth/register',
+    '/auth/register', 
     '/auth/verify-otp',
     '/auth/set-password',
 ];
+
 const authRoutes = [
     '/auth/login',
     '/auth/register',
-    '/auth/verify-otp',
+    '/auth/verify-otp', 
     '/auth/set-password',
     '/auth/complete-profile',
 ];
@@ -22,7 +23,13 @@ const authRoutes = [
 export default function AuthGuard({ children }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { isAuthenticated, user, isLoading } = useAuthStore();
+    const { 
+        isAuthenticated, 
+        user, 
+        isLoading, 
+        isProfileComplete, 
+        getNextRequiredStep 
+    } = useAuthStore();
 
     useEffect(() => {
         // Don't redirect while loading
@@ -31,40 +38,50 @@ export default function AuthGuard({ children }) {
         const isPublicRoute = publicRoutes.includes(pathname);
         const isAuthRoute = authRoutes.includes(pathname);
 
+        console.log('AuthGuard check:', {
+            pathname,
+            isAuthenticated,
+            isPublicRoute,
+            isAuthRoute,
+            user: user ? { id: user.id, profile_complete: isProfileComplete() } : null
+        });
+
+        // Not authenticated and trying to access protected route
         if (!isAuthenticated && !isPublicRoute) {
-            router.push('/auth/login');
+            console.log('Redirecting to login - not authenticated');
+            router.replace('/auth/login');
             return;
         }
 
-        if (
-            isAuthenticated &&
-            isAuthRoute &&
-            pathname !== '/auth/complete-profile'
-        ) {
-            router.push('/dashboard');
-            return;
-        }
-
-        // Check if profile is incomplete
-        if (
-            isAuthenticated &&
-            user &&
-            !user?.profile_complete &&
-            pathname !== '/auth/complete-profile'
-        ) {
-            // Check specific missing steps and redirect accordingly
-            if (user.missing_steps?.includes('password')) {
-                router.push('/auth/set-password');
-            } else if (user.missing_steps?.includes('profession')) {
-                router.push('/auth/complete-profile');
+        // Authenticated user trying to access auth routes (except complete-profile)
+        if (isAuthenticated && isAuthRoute && pathname !== '/auth/complete-profile') {
+            // If profile is complete, go to dashboard
+            if (isProfileComplete()) {
+                console.log('Redirecting to dashboard - profile complete');
+                router.replace('/dashboard');
+                return;
             }
-            //  else if (user.missing_steps?.includes('address')) {
-            //     router.push('/auth/complete-address'); // You need to create this
-            // }
-
-            return;
+            
+            // If profile incomplete, check what step is needed
+            const nextStep = getNextRequiredStep();
+            if (nextStep && nextStep !== pathname) {
+                console.log('Redirecting to next step:', nextStep);
+                router.replace(nextStep);
+                return;
+            }
         }
-    }, [isAuthenticated, user, pathname, router, isLoading]);
+
+        // Authenticated user with incomplete profile trying to access protected routes
+        if (isAuthenticated && !isPublicRoute && !isAuthRoute && !isProfileComplete()) {
+            const nextStep = getNextRequiredStep();
+            if (nextStep) {
+                console.log('Redirecting to complete profile step:', nextStep);
+                router.replace(nextStep);
+                return;
+            }
+        }
+
+    }, [isAuthenticated, user, pathname, router, isLoading, isProfileComplete, getNextRequiredStep]);
 
     if (isLoading) {
         return (

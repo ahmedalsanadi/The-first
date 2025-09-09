@@ -1,6 +1,5 @@
 // app/auth/complete-profile/page.jsx
 'use client';
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -8,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { completeProfileSchema } from '@/lib/validations/auth';
 import useAuthStore from '@/store/auth';
 import { useCities, useProfessions } from '@/hooks/useData';
+import { useCompleteProfile } from '@/hooks/useAuth';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
@@ -18,16 +18,15 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/Card';
-import { useMutation } from '@tanstack/react-query';
-import { authApi } from '@/lib/api/auth';
-import toast from 'react-hot-toast';
 
 export default function CompleteProfilePage() {
     const router = useRouter();
-    const { user, isAuthenticated, setUser } = useAuthStore();
+    const { user, isAuthenticated, isProfileComplete, getMissingSteps } =
+        useAuthStore();
 
     const { data: cities } = useCities(user?.country_id);
     const { data: professions } = useProfessions();
+    const { mutate: completeProfile, isPending } = useCompleteProfile();
 
     const {
         register,
@@ -45,68 +44,52 @@ export default function CompleteProfilePage() {
         },
     });
 
-    // Redirect logic - Let AuthGuard handle all redirections
+    // Basic auth check - let AuthGuard handle detailed redirections
     useEffect(() => {
-        console.log('Current token:', localStorage.getItem('auth_token'));
-        console.log('Is authenticated:', isAuthenticated);
-        console.log('User:', user);
         if (!isAuthenticated) {
-            router.push('/auth/login');
-            return;
+            return; // AuthGuard will handle
         }
 
         // If profile is already complete, redirect to dashboard
-        if (user?.profile_complete) {
-            router.push('/dashboard');
+        if (isProfileComplete()) {
+            router.replace('/dashboard');
             return;
         }
-    }, [isAuthenticated, user, router]);
-
-    const { mutate: completeProfile, isPending } = useMutation({
-        mutationFn: authApi.completeProfile,
-        onSuccess: (response) => {
-            console.log('Complete profile response:', response);
-            if (response.success) {
-                setUser(response.data.user);
-                toast.success('Profile updated successfully!');
-                
-                // Let AuthGuard handle the redirection based on updated user state
-            }
-        },
-        onError: (error) => {
-            console.error('Complete profile error:', error);
-            console.error('Error response:', error.response);
-
-            const message =
-                error.response?.data?.message || 'Failed to update profile';
-            toast.error(message);
-        },
-    });
+    }, [isAuthenticated, isProfileComplete, router]);
 
     const onSubmit = (data) => {
         const profileData = {
             ...data,
             city_id: data.city_id ? parseInt(data.city_id) : undefined,
-            profession_id: data.profession_id ? parseInt(data.profession_id) : undefined,
+            profession_id: data.profession_id
+                ? parseInt(data.profession_id)
+                : undefined,
         };
 
         // Remove empty values
         Object.keys(profileData).forEach((key) => {
-            if (profileData[key] === '' || profileData[key] === null || profileData[key] === undefined) {
+            if (
+                profileData[key] === '' ||
+                profileData[key] === null ||
+                profileData[key] === undefined
+            ) {
                 delete profileData[key];
             }
         });
-        console.log('Submitting profile data:', profileData);
 
+        console.log('Submitting profile data:', profileData);
         completeProfile(profileData);
     };
 
-    // Check if profession is required based on missing steps
-    const isProfessionRequired = user?.missing_steps?.includes('profession_selected');
-    const canSkip = user && !isProfessionRequired;
+    // Check what steps are missing
+    const missingSteps = getMissingSteps();
+    const isProfessionRequired = missingSteps.includes('profession_selected');
+
+    // Can skip if only optional fields are missing
+    const canSkip = missingSteps.length === 0;
 
     if (!isAuthenticated || !user) {
-        return null; // Will redirect
+        return null; // AuthGuard will redirect
     }
 
     return (
@@ -117,12 +100,21 @@ export default function CompleteProfilePage() {
                         Complete Your Profile
                     </CardTitle>
                     <CardDescription>
-                        Help us personalize your experience
+                        {isProfessionRequired
+                            ? 'Please select your profession to continue'
+                            : 'Help us personalize your experience'}
                     </CardDescription>
+                    {missingSteps.length > 0 && (
+                        <div className="text-sm text-orange-600 mt-2">
+                            Missing: {missingSteps.join(', ')}
+                        </div>
+                    )}
                 </CardHeader>
 
                 <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="space-y-6">
                         <Input
                             label="Full Name"
                             placeholder="Enter your full name"
@@ -146,15 +138,20 @@ export default function CompleteProfilePage() {
                             error={errors.city_id?.message}
                             disabled={isPending}
                             placeholder="Select your city">
+                            <option value="">Select your city</option>
                             {cities?.map((city) => (
-                                <option key={city.id} value={city.id.toString()}>
+                                <option
+                                    key={city.id}
+                                    value={city.id.toString()}>
                                     {city.name_ar} - {city.name}
                                 </option>
                             ))}
                         </Select>
 
                         <Select
-                            label="Profession"
+                            label={`Profession ${
+                                isProfessionRequired ? '*' : '(Optional)'
+                            }`}
                             {...register('profession_id')}
                             error={errors.profession_id?.message}
                             disabled={isPending}
@@ -162,7 +159,9 @@ export default function CompleteProfilePage() {
                             required={isProfessionRequired}>
                             <option value="">Select your profession</option>
                             {professions?.map((profession) => (
-                                <option key={profession.id} value={profession.id.toString()}>
+                                <option
+                                    key={profession.id}
+                                    value={profession.id.toString()}>
                                     {profession.name_ar} - {profession.name}
                                 </option>
                             ))}
@@ -201,7 +200,9 @@ export default function CompleteProfilePage() {
                                     type="button"
                                     variant="ghost"
                                     className="w-full"
-                                    onClick={() => router.push('/dashboard')}>
+                                    onClick={() =>
+                                        router.replace('/dashboard')
+                                    }>
                                     Skip for now
                                 </Button>
                             )}

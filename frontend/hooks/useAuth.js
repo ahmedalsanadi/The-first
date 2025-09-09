@@ -1,4 +1,4 @@
-// hooks/useAuth.js
+// hooks/useAuth.js - ENHANCED VERSION
 import { useMutation } from '@tanstack/react-query';
 import { authApi } from '@/lib/api/auth';
 import useAuthStore from '@/store/auth';
@@ -13,16 +13,19 @@ export function useInitiateRegistration() {
     return useMutation({
         mutationFn: authApi.initiateRegistration,
         onSuccess: (data, variables) => {
+            console.log('Initiate registration response:', data);
             if (data.success) {
                 setRegistrationData({
                     phone: variables.phone,
                     country_code: variables.country_code,
-                    ...data.data,
+                    exists: data.data.exists,
+                    verified: false,
                 });
                 toast.success(data.message);
             }
         },
         onError: (error) => {
+            console.error('Registration initiation error:', error);
             const message =
                 error.response?.data?.message || 'Registration failed';
             toast.error(message);
@@ -38,17 +41,19 @@ export function useVerifyOtp() {
     return useMutation({
         mutationFn: authApi.verifyOtp,
         onSuccess: (data, variables) => {
+            console.log('Verify OTP response:', data);
             if (data.success) {
                 setRegistrationData({
                     phone: variables.phone,
                     country_code: variables.country_code,
                     verified: true,
-                    nextStep: data.data.next_step,
+                    passwordSet: false,
                 });
                 toast.success('Phone verified successfully!');
             }
         },
         onError: (error) => {
+            console.error('OTP verification error:', error);
             const message =
                 error.response?.data?.message || 'Verification failed';
             toast.error(message);
@@ -57,53 +62,73 @@ export function useVerifyOtp() {
 }
 
 export function useSetPassword() {
-    const setAuth = useAuthStore((state) => state.setAuth); 
-    const setRegistrationData = useAuthStore(
-        (state) => state.setRegistrationData,
-    );
+    const { setAuth, clearRegistrationData } = useAuthStore();
 
     return useMutation({
         mutationFn: authApi.setPassword,
         onSuccess: (data) => {
             if (data.success) {
-         // Automatically log the user in after setting password
+                // Set auth with user and token
                 setAuth(data.data.user, data.data.token);
                 
-                setRegistrationData({
-                    passwordSet: true,
-                    nextStep: data.data.next_step,
-                });
+                // Clear registration data since it's no longer needed
+                clearRegistrationData();
+                
                 toast.success('Password set successfully!');
+                // Let AuthGuard handle redirection
             }
-              // No need to redirect here - AuthGuard will handle it
         },
         onError: (error) => {
-            const message =
-                error.response?.data?.message || 'Failed to set password';
+            const message = error.response?.data?.message || 'Failed to set password';
             toast.error(message);
         },
     });
 }
 
 export function useLogin() {
-    const setAuth = useAuthStore((state) => state.setAuth);
-    const router = useRouter();
+    const { setAuth, clearRegistrationData } = useAuthStore();
 
     return useMutation({
         mutationFn: authApi.login,
         onSuccess: (data) => {
+            console.log('Login response:', data);
             if (data.success) {
                 setAuth(data.data.user, data.data.token);
+                clearRegistrationData(); // Clear any leftover registration data
+                toast.success('Logged in successfully!');
+                // Let AuthGuard handle redirection
+            }
+        },
+        onError: (error) => {
+            console.error('Login error:', error);
+            const message = error.response?.data?.message || 'Login failed';
+            toast.error(message);
+        },
+    });
+}
 
-                if (!data.data.profile_complete) {
-                    router.push('/auth/complete-profile');
-                } else {
-                    router.push('/dashboard');
+export function useCompleteProfile() {
+    const { setUser } = useAuthStore();
+    const router = useRouter();
+
+    return useMutation({
+        mutationFn: authApi.completeProfile,
+        onSuccess: (data) => {
+            if (data.success) {
+                // Update user in store
+                setUser(data.data.user);
+                toast.success('Profile updated successfully!');
+
+                // If profile is now complete, redirect to dashboard
+                if (data.data.profile_complete) {
+                    router.replace('/dashboard');
                 }
             }
         },
         onError: (error) => {
-            const message = error.response?.data?.message || 'Login failed';
+            console.error('Complete profile error:', error);
+            const message =
+                error.response?.data?.message || 'Failed to update profile';
             toast.error(message);
         },
     });
@@ -118,6 +143,7 @@ export function useLogout() {
         onSuccess: () => {
             clearAuth();
             router.push('/auth/login');
+            toast.success('Logged out successfully');
         },
         onError: () => {
             clearAuth();
