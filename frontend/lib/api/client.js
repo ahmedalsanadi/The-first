@@ -1,4 +1,4 @@
-// lib/api/client.js
+// lib/api/client.js - Add better error logging
 import axios from 'axios';
 import { ENV, STORAGE_KEYS } from '@/config/constants';
 import { getToken, removeToken, setToken } from '@/lib/utils/storage';
@@ -17,7 +17,12 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config) => {
         const token = getToken();
-        console.log('Sending request with token:', token ? 'Yes' : 'No');
+        console.log('Sending request:', {
+            url: config.url,
+            method: config.method,
+            hasToken: !!token,
+            data: config.data,
+        });
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -25,6 +30,7 @@ apiClient.interceptors.request.use(
         return config;
     },
     (error) => {
+        console.error('Request error:', error);
         return Promise.reject(error);
     },
 );
@@ -32,9 +38,22 @@ apiClient.interceptors.request.use(
 // Response interceptor
 apiClient.interceptors.response.use(
     (response) => {
+        console.log('Response received:', {
+            url: response.config.url,
+            status: response.status,
+            data: response.data,
+        });
         return response.data;
     },
     async (error) => {
+        console.error('Response error:', {
+            url: error.config?.url,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            headers: error.response?.headers,
+        });
+
         const { response } = error;
 
         if (response?.status === 401) {

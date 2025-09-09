@@ -4,89 +4,167 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import useAuthStore from '@/store/auth';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-const publicRoutes = [
-    '/auth/login',
-    '/auth/register', 
+const PUBLIC_ROUTES = ['/'];
+
+const AUTH_ROUTES = [
+    '/auth/register',
     '/auth/verify-otp',
     '/auth/set-password',
+    '/auth/login',
+    '/auth/complete-profile',
 ];
 
-const authRoutes = [
-    '/auth/login',
-    '/auth/register',
-    '/auth/verify-otp', 
-    '/auth/set-password',
-    '/auth/complete-profile',
+const PROTECTED_ROUTES = [
+    '/dashboard',
+    '/profile',
+    '/products',
+    '/ads',
+    '/affiliate',
+    '/city',
 ];
 
 export default function AuthGuard({ children }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { 
-        isAuthenticated, 
-        user, 
-        isLoading, 
-        isProfileComplete, 
-        getNextRequiredStep 
+
+    const {
+        isAuthenticated,
+        user,
+        isLoading,
+        isProfileComplete,
+        getNextRequiredStep,
+        getCurrentRegistrationStep,
+        isRegistrationDataValid,
+        error,
     } = useAuthStore();
 
     useEffect(() => {
         // Don't redirect while loading
         if (isLoading) return;
 
-        const isPublicRoute = publicRoutes.includes(pathname);
-        const isAuthRoute = authRoutes.includes(pathname);
+        const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+        const isAuthRoute = AUTH_ROUTES.includes(pathname);
+        const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+            pathname.startsWith(route),
+        );
 
-        console.log('AuthGuard check:', {
+        console.log('AuthGuard Navigation Check:', {
             pathname,
             isAuthenticated,
             isPublicRoute,
             isAuthRoute,
-            user: user ? { id: user.id, profile_complete: isProfileComplete() } : null
+            isProtectedRoute,
+            profileComplete: isAuthenticated ? isProfileComplete() : false,
+            user: user
+                ? { id: user.id, steps: user.profile_completion_steps }
+                : null,
         });
 
-        // Not authenticated and trying to access protected route
-        if (!isAuthenticated && !isPublicRoute) {
-            console.log('Redirecting to login - not authenticated');
-            router.replace('/auth/login');
+        // Handle authenticated users
+        if (isAuthenticated && user) {
+            const profileComplete = isProfileComplete();
+
+            // Redirect from auth routes to appropriate destination
+            if (isAuthRoute) {
+                if (profileComplete) {
+                    console.log('✓ Profile complete, redirecting to dashboard');
+                    router.replace('/dashboard');
+                    return;
+                }
+
+                // Check if user is on the correct step
+                const nextStep = getNextRequiredStep();
+                if (nextStep && nextStep !== pathname) {
+                    console.log(
+                        '→ Redirecting to next required step:',
+                        nextStep,
+                    );
+                    router.replace(nextStep);
+                    return;
+                }
+            }
+
+            // Block protected routes if profile incomplete
+            if (isProtectedRoute && !profileComplete) {
+                const nextStep = getNextRequiredStep();
+                if (nextStep) {
+                    console.log(
+                        '⚠ Profile incomplete, redirecting to:',
+                        nextStep,
+                    );
+                    router.replace(nextStep);
+                    return;
+                }
+            }
+
+            // Allow access to current route
             return;
         }
 
-        // Authenticated user trying to access auth routes (except complete-profile)
-        if (isAuthenticated && isAuthRoute && pathname !== '/auth/complete-profile') {
-            // If profile is complete, go to dashboard
-            if (isProfileComplete()) {
-                console.log('Redirecting to dashboard - profile complete');
-                router.replace('/dashboard');
+        // Handle unauthenticated users
+        if (!isAuthenticated) {
+            // Allow public routes
+            if (isPublicRoute) return;
+
+            // Block protected routes
+            if (isProtectedRoute) {
+                console.log(
+                    '🔒 Protected route access denied, redirecting to login',
+                );
+                router.replace('/auth/login');
                 return;
             }
-            
-            // If profile incomplete, check what step is needed
-            const nextStep = getNextRequiredStep();
-            if (nextStep && nextStep !== pathname) {
-                console.log('Redirecting to next step:', nextStep);
-                router.replace(nextStep);
-                return;
+
+            // Handle auth flow routes
+            if (isAuthRoute) {
+                // For login, allow access
+                if (pathname === '/auth/login') return;
+
+                // For other auth routes, check registration flow
+                const correctStep = getCurrentRegistrationStep();
+                if (correctStep !== pathname) {
+                    console.log(
+                        '→ Redirecting to correct registration step:',
+                        correctStep,
+                    );
+                    router.replace(correctStep);
+                    return;
+                }
             }
         }
+    }, [
+        isAuthenticated,
+        user,
+        pathname,
+        router,
+        isLoading,
+        isProfileComplete,
+        getNextRequiredStep,
+        getCurrentRegistrationStep,
+    ]);
 
-        // Authenticated user with incomplete profile trying to access protected routes
-        if (isAuthenticated && !isPublicRoute && !isAuthRoute && !isProfileComplete()) {
-            const nextStep = getNextRequiredStep();
-            if (nextStep) {
-                console.log('Redirecting to complete profile step:', nextStep);
-                router.replace(nextStep);
-                return;
-            }
-        }
-
-    }, [isAuthenticated, user, pathname, router, isLoading, isProfileComplete, getNextRequiredStep]);
-
+    // Show loading spinner
     if (isLoading) {
+        return <LoadingSpinner />;
+    }
+
+    // Show error state
+    if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-red-600 mb-2">
+                        Authentication Error
+                    </h2>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700">
+                        Retry
+                    </button>
+                </div>
             </div>
         );
     }

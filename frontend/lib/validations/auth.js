@@ -1,4 +1,4 @@
-// lib/validations/auth.js
+// lib/validations/auth.js - Update completeProfileSchema
 import { z } from 'zod'
 import { YEMEN_PHONE_PREFIXES } from '@/config/constants'
 
@@ -49,11 +49,52 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
+// Enhanced complete profile schema with proper validation
 export const completeProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  city_id: z.string().optional(),
-  profession_id: z.string().optional(),
-  birth_date: z.string().optional(),
-  gender: z.enum(['male', 'female']).optional(),
+  name: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.trim().length >= 2, {
+      message: 'Name must be at least 2 characters'
+    }),
+  email: z
+    .string()
+    .optional()
+    .refine((val) => !val || val === '' || z.string().email().safeParse(val).success, {
+      message: 'Invalid email address'
+    }),
+  city_id: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d+$/.test(val), {
+      message: 'Invalid city selection'
+    }),
+  profession_id: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d+$/.test(val), {
+      message: 'Invalid profession selection'
+    }),
+  birth_date: z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val) return true;
+      // Check if it's a valid date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(val)) return false;
+      
+      // Check if it's a valid date and not in the future
+      const date = new Date(val);
+      const today = new Date();
+      return date <= today && date >= new Date('1900-01-01');
+    }, {
+      message: 'Invalid birth date'
+    }),
+  gender: z
+    .string()
+    .optional()
+    .refine((val) => !val || ['male', 'female'].includes(val), {
+      message: 'Invalid gender selection'
+    }),
 })

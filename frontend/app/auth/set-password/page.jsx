@@ -1,4 +1,4 @@
-// app/auth/set-password/page.jsx - CLEANED UP VERSION
+// app/auth/set-password/page.jsx
 'use client';
 
 import { useEffect } from 'react';
@@ -17,10 +17,18 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/Card';
+import AuthLayout from '@/components/layout/AuthLayout';
 
 export default function SetPasswordPage() {
     const router = useRouter();
-    const { registrationData, isAuthenticated, user } = useAuthStore();
+    const {
+        registrationData,
+        isAuthenticated,
+        user,
+        isRegistrationDataValid,
+        getCurrentRegistrationStep,
+    } = useAuthStore();
+
     const { mutate: setPassword, isPending } = useSetPassword();
 
     const {
@@ -38,24 +46,45 @@ export default function SetPasswordPage() {
 
     const watchedPassword = watch('password');
 
-    // Basic redirect logic - let AuthGuard handle the complex logic
+    // Enhanced redirect logic
     useEffect(() => {
+        // If authenticated and password already set, let AuthGuard handle redirection
         if (
             isAuthenticated &&
             user?.profile_completion_steps?.includes('password_set')
         ) {
-            // Password already set, let AuthGuard handle redirection
             return;
         }
 
-        // Check if we have registration data for unauthenticated users
-        if (!isAuthenticated && !registrationData?.verified) {
-            router.push('/auth/register');
-            return;
+        // If not authenticated, validate registration flow
+        if (!isAuthenticated) {
+            const correctStep = getCurrentRegistrationStep();
+            if (correctStep !== '/auth/set-password') {
+                router.replace(correctStep);
+                return;
+            }
+
+            // Additional validation for registration data
+            if (!isRegistrationDataValid() || !registrationData?.verified) {
+                router.replace('/auth/register');
+                return;
+            }
         }
-    }, [isAuthenticated, registrationData, router, user]);
+    }, [
+        isAuthenticated,
+        registrationData,
+        router,
+        user,
+        isRegistrationDataValid,
+        getCurrentRegistrationStep,
+    ]);
 
     const onSubmit = (data) => {
+        if (!registrationData?.phone || !registrationData?.country_code) {
+            router.replace('/auth/register');
+            return;
+        }
+
         setPassword({
             phone: registrationData.phone,
             country_code: registrationData.country_code,
@@ -64,17 +93,13 @@ export default function SetPasswordPage() {
         });
     };
 
-    // Show loading if we're waiting for proper state
-    if (isAuthenticated && !user) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-        );
+    // Show loading while validating
+    if (!registrationData && !isAuthenticated) {
+        return null;
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 px-4">
+        <AuthLayout>
             <Card className="w-full max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -83,6 +108,12 @@ export default function SetPasswordPage() {
                     <CardDescription className="text-gray-600 dark:text-gray-400">
                         Create a secure password for your account
                     </CardDescription>
+                    {registrationData && (
+                        <div className="text-sm text-gray-500 mt-2">
+                            Account: {registrationData.country_code}{' '}
+                            {registrationData.phone}
+                        </div>
+                    )}
                 </CardHeader>
 
                 <CardContent>
@@ -107,16 +138,28 @@ export default function SetPasswordPage() {
                             disabled={isPending}
                         />
 
+                        <div className="text-xs text-gray-500 space-y-1">
+                            <p>Password requirements:</p>
+                            <ul className="list-disc list-inside space-y-0.5 text-gray-400">
+                                <li>At least 8 characters</li>
+                                <li>One uppercase letter</li>
+                                <li>One lowercase letter</li>
+                                <li>One number</li>
+                            </ul>
+                        </div>
+
                         <Button
                             type="submit"
                             className="w-full"
                             loading={isPending}
-                            disabled={isPending}>
-                            {isPending ? 'Setting Password...' : 'Set Password'}
+                            disabled={isPending || !watchedPassword}>
+                            {isPending
+                                ? 'Setting Password...'
+                                : 'Set Password & Continue'}
                         </Button>
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </AuthLayout>
     );
 }
