@@ -18,6 +18,7 @@ import {
     CardTitle,
 } from '@/components/ui/Card';
 import AuthLayout from '@/components/layout/AuthLayout';
+import FormSection from '@/components/ui/FormSection';
 
 export default function SetPasswordPage() {
     const router = useRouter();
@@ -120,33 +121,37 @@ export default function SetPasswordPage() {
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-6">
-                        <PasswordInput
-                            label="Password"
-                            placeholder="Create a password"
-                            {...register('password')}
-                            value={watchedPassword}
-                            error={errors.password?.message}
-                            disabled={isPending}
-                            showStrength={true}
-                        />
+                        <FormSection
+                            title="Create password"
+                            description="Use a strong password with letters and numbers.">
+                            <PasswordInput
+                                label="Password"
+                                placeholder="Create a password"
+                                {...register('password')}
+                                value={watchedPassword}
+                                error={errors.password?.message}
+                                disabled={isPending}
+                                showStrength={true}
+                            />
 
-                        <PasswordInput
-                            label="Confirm Password"
-                            placeholder="Confirm your password"
-                            {...register('password_confirmation')}
-                            error={errors.password_confirmation?.message}
-                            disabled={isPending}
-                        />
+                            <PasswordInput
+                                label="Confirm Password"
+                                placeholder="Confirm your password"
+                                {...register('password_confirmation')}
+                                error={errors.password_confirmation?.message}
+                                disabled={isPending}
+                            />
 
-                        <div className="text-xs text-gray-500 space-y-1">
-                            <p>Password requirements:</p>
-                            <ul className="list-disc list-inside space-y-0.5 text-gray-400">
-                                <li>At least 8 characters</li>
-                                <li>One uppercase letter</li>
-                                <li>One lowercase letter</li>
-                                <li>One number</li>
-                            </ul>
-                        </div>
+                            <div className="text-xs text-gray-500 space-y-1">
+                                <p>Password requirements:</p>
+                                <ul className="list-disc list-inside space-y-0.5 text-gray-400 ltr:ml-4 rtl:mr-4">
+                                    <li>At least 8 characters</li>
+                                    <li>One uppercase letter</li>
+                                    <li>One lowercase letter</li>
+                                    <li>One number</li>
+                                </ul>
+                            </div>
+                        </FormSection>
 
                         <Button
                             type="submit"

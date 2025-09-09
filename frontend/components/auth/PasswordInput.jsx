@@ -51,12 +51,15 @@ export default function PasswordInput({
                     onChange={onChange}
                     error={error}
                     disabled={disabled}
-                    className="pr-10"
+                    className={cn('ltr:pr-10 rtl:pl-10')}
                     {...props}
                 />
                 <button
                     type="button"
-                    className="absolute right-3 top-9 text-secondary-400 hover:text-secondary-600"
+                    className={cn(
+                        'absolute top-9 text-secondary-400 hover:text-secondary-600',
+                        'ltr:right-3 rtl:left-3',
+                    )}
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}>
                     {showPassword ? (
@@ -88,7 +91,7 @@ export default function PasswordInput({
 
                     <div className="text-xs text-secondary-500 space-y-1">
                         <p>Password must contain:</p>
-                        <ul className="space-y-1 ml-4">
+                        <ul className="space-y-1 ml-4 rtl:ml-0 rtl:mr-4">
                             <li
                                 className={
                                     value.length >= 8 ? 'text-green-600' : ''

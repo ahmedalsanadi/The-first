@@ -4,208 +4,210 @@
 @source "../**/*.{js,jsx,ts,tsx}";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant ltr (&:where([dir=ltr], [dir=ltr] *));
+@custom-variant rtl (&:where([dir=rtl], [dir=rtl] *));
 
 @theme {
-  /* Color palette - Light mode */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+    /* Color palette - Light mode */
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
 
-  --color-secondary-50: #f8fafc;
-  --color-secondary-100: #f1f5f9;
-  --color-secondary-200: #e2e8f0;
-  --color-secondary-300: #cbd5e1;
-  --color-secondary-400: #94a3b8;
-  --color-secondary-500: #64748b;
-  --color-secondary-600: #475569;
-  --color-secondary-700: #334155;
-  --color-secondary-800: #1e293b;
-  --color-secondary-900: #0f172a;
+    --color-secondary-50: #f8fafc;
+    --color-secondary-100: #f1f5f9;
+    --color-secondary-200: #e2e8f0;
+    --color-secondary-300: #cbd5e1;
+    --color-secondary-400: #94a3b8;
+    --color-secondary-500: #64748b;
+    --color-secondary-600: #475569;
+    --color-secondary-700: #334155;
+    --color-secondary-800: #1e293b;
+    --color-secondary-900: #0f172a;
 
-  /* Dark mode colors */
-  --color-dark-50: #f9fafb;
-  --color-dark-100: #f3f4f6;
-  --color-dark-200: #e5e7eb;
-  --color-dark-300: #d1d5db;
-  --color-dark-400: #9ca3af;
-  --color-dark-500: #6b7280;
-  --color-dark-600: #4b5563;
-  --color-dark-700: #374151;
-  --color-dark-800: #1f2937;
-  --color-dark-900: #111827;
-  --color-dark-950: #030712;
+    /* Dark mode colors */
+    --color-dark-50: #f9fafb;
+    --color-dark-100: #f3f4f6;
+    --color-dark-200: #e5e7eb;
+    --color-dark-300: #d1d5db;
+    --color-dark-400: #9ca3af;
+    --color-dark-500: #6b7280;
+    --color-dark-600: #4b5563;
+    --color-dark-700: #374151;
+    --color-dark-800: #1f2937;
+    --color-dark-900: #111827;
+    --color-dark-950: #030712;
 
-  /* Background colors for dark mode */
-  --color-bg-dark: var(--color-dark-900);
-  --color-bg-dark-card: var(--color-dark-800);
-  --color-bg-dark-input: var(--color-dark-700);
-  
-  /* Text colors for dark mode */
-  --color-text-dark: var(--color-dark-100);
-  --color-text-dark-muted: var(--color-dark-400);
+    /* Background colors for dark mode */
+    --color-bg-dark: var(--color-dark-900);
+    --color-bg-dark-card: var(--color-dark-800);
+    --color-bg-dark-input: var(--color-dark-700);
 
-  /* Font families */
-  --font-sans: 'Inter', 'system-ui', 'sans-serif';
-  --font-arabic: 'Cairo', 'system-ui', 'sans-serif';
+    /* Text colors for dark mode */
+    --color-text-dark: var(--color-dark-100);
+    --color-text-dark-muted: var(--color-dark-400);
 
-  /* Animations */
-  --animate-fade-in: fadeIn 0.5s ease-in-out;
-  --animate-slide-up: slideUp 0.3s ease-out;
-  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    /* Font families */
+    --font-sans: 'Inter', 'system-ui', 'sans-serif';
+    --font-arabic: 'Cairo', 'system-ui', 'sans-serif';
+
+    /* Animations */
+    --animate-fade-in: fadeIn 0.5s ease-in-out;
+    --animate-slide-up: slideUp 0.3s ease-out;
+    --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer base {
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-  }
-  
-  :root {
-    --bg-primary: white;
-    --bg-secondary: #f8fafc;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-  }
-  
-  [data-theme="dark"] {
-    --bg-primary: var(--color-dark-900);
-    --bg-secondary: var(--color-dark-800);
-    --text-primary: var(--color-dark-100);
-    --text-secondary: var(--color-dark-400);
-    --border-color: var(--color-dark-700);
-  }
-  
-  body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    transition: background-color 0.2s ease, color 0.2s ease;
-  }
+    html {
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    :root {
+        --bg-primary: white;
+        --bg-secondary: #f8fafc;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+    }
+
+    [data-theme='dark'] {
+        --bg-primary: var(--color-dark-900);
+        --bg-secondary: var(--color-dark-800);
+        --text-primary: var(--color-dark-100);
+        --text-secondary: var(--color-dark-400);
+        --border-color: var(--color-dark-700);
+    }
+
+    body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
 }
 
 @layer components {
-  .card {
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    
-    @dark {
-      background-color: var(--color-dark-800);
-      border-color: var(--color-dark-700);
+    .card {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+
+        @dark {
+            background-color: var(--color-dark-800);
+            border-color: var(--color-dark-700);
+        }
     }
-  }
-  
-  .input {
-    background-color: white;
-    border: 1px solid #d1d5db;
-    
-    &:focus {
-      --tw-ring-color: var(--color-primary-500);
-      border-color: var(--color-primary-500);
+
+    .input {
+        background-color: white;
+        border: 1px solid #d1d5db;
+
+        &:focus {
+            --tw-ring-color: var(--color-primary-500);
+            border-color: var(--color-primary-500);
+        }
+
+        @dark {
+            background-color: var(--color-dark-700);
+            border-color: var(--color-dark-600);
+            color: white;
+
+            &:focus {
+                --tw-ring-color: var(--color-primary-400);
+                border-color: var(--color-primary-400);
+            }
+        }
     }
-    
-    @dark {
-      background-color: var(--color-dark-700);
-      border-color: var(--color-dark-600);
-      color: white;
-      
-      &:focus {
-        --tw-ring-color: var(--color-primary-400);
-        border-color: var(--color-primary-400);
-      }
-    }
-  }
-  
-  .btn-primary {
-    background-color: var(--color-primary-600);
-    color: white;
-    
-    &:hover {
-      background-color: var(--color-primary-700);
-    }
-    
-    @dark {
-      background-color: var(--color-primary-500);
-      
-      &:hover {
+
+    .btn-primary {
         background-color: var(--color-primary-600);
-      }
+        color: white;
+
+        &:hover {
+            background-color: var(--color-primary-700);
+        }
+
+        @dark {
+            background-color: var(--color-primary-500);
+
+            &:hover {
+                background-color: var(--color-primary-600);
+            }
+        }
     }
-  }
 }
 
 @layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
-  }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 /* RTL Support */
 [dir='rtl'] {
-  text-align: right;
+    text-align: right;
 }
 
 [dir='rtl'] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
+    --tw-space-x-reverse: 1;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  
-  @dark {
-    background: var(--color-dark-800);
-  }
+    background: #f1f1f1;
+
+    @dark {
+        background: var(--color-dark-800);
+    }
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-  
-  @dark {
-    background: var(--color-dark-600);
-  }
+    background: #c1c1c1;
+    border-radius: 3px;
+
+    @dark {
+        background: var(--color-dark-600);
+    }
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-  
-  @dark {
-    background: var(--color-dark-500);
-  }
+    background: #a8a8a8;
+
+    @dark {
+        background: var(--color-dark-500);
+    }
 }

@@ -11,8 +11,15 @@ import useAuthStore from '@/store/auth';
 import PhoneInput from '@/components/auth/PhoneInput';
 import PasswordInput from '@/components/auth/PasswordInput';
 import Button from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/Card';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import AuthLayout from '@/components/layout/AuthLayout';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -47,16 +54,11 @@ export default function LoginPage() {
     }, [isAuthenticated, router]);
 
     const onSubmit = (data) => {
-        console.log('Form data:', data); // Check if this logs
         login(data);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 px-4">
-            <div className="absolute top-4 right-4">
-                <ThemeToggle />
-            </div>
-
+        <AuthLayout>
             <Card className="w-full max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -118,6 +120,6 @@ export default function LoginPage() {
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </AuthLayout>
     );
 }

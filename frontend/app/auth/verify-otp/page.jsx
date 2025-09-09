@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/Card';
 import { formatTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import AuthLayout from '@/components/layout/AuthLayout';
 
 export default function VerifyOtpPage() {
     const router = useRouter();
@@ -107,7 +108,7 @@ export default function VerifyOtpPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
+        <AuthLayout>
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold text-secondary-900">
@@ -183,6 +184,6 @@ export default function VerifyOtpPage() {
                     </form>
                 </CardContent>
             </Card>
-        </div>
+        </AuthLayout>
     );
 }

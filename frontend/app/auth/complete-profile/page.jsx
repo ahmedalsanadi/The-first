@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/Card';
 import AuthLayout from '@/components/layout/AuthLayout';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import FormSection from '@/components/ui/FormSection';
 
 export default function CompleteProfilePage() {
     const router = useRouter();
@@ -203,24 +204,22 @@ export default function CompleteProfilePage() {
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-6">
-                        {/* Required profession field */}
-                        <div className="space-y-4">
+                        <FormSection
+                            title={
+                                <div className="flex items-center gap-2">
+                                    Profession
+                                    {isProfessionRequired && (
+                                        <span className="text-red-500">*</span>
+                                    )}
+                                    {!isProfessionRequired && (
+                                        <span className="text-sm text-gray-500">
+                                            (Optional)
+                                        </span>
+                                    )}
+                                </div>
+                            }
+                            description="Tell us your trade.">
                             <Select
-                                label={
-                                    <div className="flex items-center gap-2">
-                                        Profession
-                                        {isProfessionRequired && (
-                                            <span className="text-red-500">
-                                                *
-                                            </span>
-                                        )}
-                                        {!isProfessionRequired && (
-                                            <span className="text-sm text-gray-500">
-                                                (Optional)
-                                            </span>
-                                        )}
-                                    </div>
-                                }
                                 {...register('profession_id')}
                                 error={errors.profession_id?.message}
                                 disabled={isPending || professionsLoading}
@@ -245,9 +244,8 @@ export default function CompleteProfilePage() {
                                     Profession selection is required to continue
                                 </div>
                             )}
-                        </div>
+                        </FormSection>
 
-                        {/* Optional fields toggle */}
                         <div className="border-t pt-4">
                             <button
                                 type="button"
@@ -260,9 +258,10 @@ export default function CompleteProfilePage() {
                             </button>
                         </div>
 
-                        {/* Optional fields */}
                         {showOptionalFields && (
-                            <div className="space-y-4 border-l-4 border-gray-200 pl-4">
+                            <FormSection
+                                title="Optional Information"
+                                description="Improve your profile by adding more details.">
                                 <Input
                                     label="Full Name"
                                     placeholder="Enter your full name"
@@ -319,11 +318,10 @@ export default function CompleteProfilePage() {
                                         Female - أنثى
                                     </option>
                                 </Select>
-                            </div>
+                            </FormSection>
                         )}
 
-                        {/* Action buttons */}
-                        <div className="space-y-3 pt-4">
+                        <div className="space-y-3 pt-2">
                             <Button
                                 type="submit"
                                 className="w-full"

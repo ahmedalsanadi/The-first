@@ -15,9 +15,7 @@ export function useTheme() {
                 : 'light';
             setTheme(systemTheme);
         }
-
-        const root = window.document.documentElement;
-        root.setAttribute('data-theme', theme);
+        // ThemeProvider is responsible for applying attributes to <html>
     }, [theme, setTheme]);
 
     const toggleTheme = () => {

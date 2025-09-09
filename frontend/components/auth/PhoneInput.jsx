@@ -44,10 +44,10 @@ export default function PhoneInput({
                     error={phoneError}
                     disabled={disabled}
                     required
-                    className="pl-16"
+                    className={cn('ltr:pl-16 rtl:pr-16')}
                 />
                 {countryCode && (
-                    <div className="absolute left-3 top-9 flex items-center text-sm text-secondary-500">
+                    <div className="absolute top-9 flex items-center text-sm text-secondary-500 ltr:left-3 rtl:right-3">
                         {countryCode}
                     </div>
                 )}

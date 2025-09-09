@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import AuthLayout from '@/components/layout/AuthLayout';
+import FormSection from '@/components/ui/FormSection';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -79,17 +80,23 @@ export default function RegisterPage() {
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="space-y-6">
-                        <PhoneInput
-                            phone={watchedPhone}
-                            countryCode ={watchedCountryCode}
-                            onPhoneChange={(value) => setValue('phone', value)}
-                            onCountryCodeChange={(value) =>
-                                setValue('country_code', value)
-                            }
-                            phoneError={errors.phone?.message}
-                            countryCodeError={errors.country_code?.message}
-                            disabled={isPending}
-                        />
+                        <FormSection
+                            title="Your Phone"
+                            description="We will send you a verification code.">
+                            <PhoneInput
+                                phone={watchedPhone}
+                                countryCode={watchedCountryCode}
+                                onPhoneChange={(value) =>
+                                    setValue('phone', value)
+                                }
+                                onCountryCodeChange={(value) =>
+                                    setValue('country_code', value)
+                                }
+                                phoneError={errors.phone?.message}
+                                countryCodeError={errors.country_code?.message}
+                                disabled={isPending}
+                            />
+                        </FormSection>
 
                         <Button
                             type="submit"

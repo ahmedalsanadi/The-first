@@ -2,11 +2,13 @@
 'use client';
 
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import DirectionToggle from '@/components/ui/DirectionToggle';
 
 export default function AuthLayout({ children }) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 px-4">
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 ltr:right-4 rtl:left-4 flex items-center gap-2">
+                <DirectionToggle />
                 <ThemeToggle />
             </div>
 
