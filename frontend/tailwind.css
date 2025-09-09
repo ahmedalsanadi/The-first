@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+/* Ensure Tailwind scans the Next.js app, components, hooks, and lib directories */
+@source "./app/**/*.{js,jsx,ts,tsx}";
+@source "./components/**/*.{js,jsx,ts,tsx}";
+@source "./hooks/**/*.{js,jsx,ts,tsx}";
+@source "./lib/**/*.{js,jsx,ts,tsx}";
+@source "./store/**/*.{js,jsx,ts,tsx}";
+
+/* Global theme tokens and variants are defined in app/globals.css */

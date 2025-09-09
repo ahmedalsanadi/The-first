@@ -55,13 +55,13 @@ class OtpVerification extends Model
     public function scopeValid($query)
     {
         return $query->where('is_used', false)
-                    ->where('expires_at', '>', now())
-                    ->where('attempts', '<', 3);
+            ->where('expires_at', '>', now())
+            ->where('attempts', '<', 3);
     }
 
-    public function scopeForPhone($query, string $phone, string $countryCode)
+    public function scopeForPhone($query, string $phone, string $country_code)
     {
         return $query->where('phone', $phone)
-                    ->where('country_code', $countryCode);
+            ->where('country_code', $country_code);
     }
 }
