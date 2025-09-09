@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Frontend Documentation
 
-## Getting Started
+A Next.js 15 app (React 19) for The First for Building platform. This README gives a high-level overview. For deep dives, see the docs in `docs/`.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+-   Next.js `15.5.2` (App Router)
+-   React `19.1.0`
+-   Tailwind CSS `^4`
+-   @tanstack/react-query `^5` (server-state)
+-   Zustand `^4.4.0` (client-state)
+-   Zod `^3.22.0` (validation)
+-   Axios `^1.6.0` (HTTP)
+-   react-hook-form `^7.47.0` + @hookform/resolvers
+-   react-hot-toast (notifications)
+-   js-cookie (not currently used for token)
+-   lucide-react (icons), swiper, framer-motion
+
+## Project Structure
+
+```
+frontend/
+├─ app/                 # Next.js app router (pages, layouts)
+│  ├─ layout.js         # Root layout – wraps Theme, Query, AuthGuard
+│  ├─ globals.css       # Global styles
+│  ├─ page.js           # Home page
+│  ├─ auth/
+│  │  ├─ register/page.jsx
+│  │  ├─ verify-otp/page.jsx
+│  │  ├─ set-password/page.jsx
+│  │  └─ complete-profile/page.jsx
+│  ├─ dashboard/page.jsx
+│  └─ profile/page.jsx
+├─ components/
+│  ├─ layout/           # AppProvider, AuthGuard, ThemeProvider, AuthLayout
+│  ├─ auth/             # PhoneInput, PasswordInput, OtpInput
+│  └─ ui/               # Button, Card, Input, Select, ThemeToggle, etc.
+├─ config/
+│  └─ constants.js      # ENV, API_ENDPOINTS, ROUTES, STORAGE_KEYS, QUERY_KEYS
+├─ hooks/
+│  ├─ useAuth.js        # Auth flow mutations (register, login, etc.)
+│  └─ useData.js        # Data fetching hooks (cities, professions, ...)
+├─ lib/
+│  ├─ api/
+│  │  ├─ client.js      # Axios instance + interceptors
+│  │  ├─ auth.js        # Auth endpoints
+│  │  └─ data.js        # Data endpoints
+│  ├─ utils/
+│  │  ├─ storage.js     # localStorage token & user helpers
+│  │  └─ index.js       # misc utilities (cn, debounce, formatTime, ...)
+│  └─ validations/
+│     └─ auth.js        # Zod schemas for auth & profile
+├─ store/
+│  ├─ auth.js           # Auth state (Zustand) with registration flow helpers
+│  └─ app.js            # UI + catalog state (theme, language, cities, ...)
+├─ tailwind.css         # Tailwind v4 entry + theme tokens
+└─ package.json         # Scripts & dependencies
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quick Start
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+-   Prereqs: Node 18+
+-   Environment: set `NEXT_PUBLIC_API_URL` to backend API base.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Install & run:
 
-## Learn More
+```bash
+pnpm i # or npm i / yarn
+pnpm dev # next dev --turbopack
+```
 
-To learn more about Next.js, take a look at the following resources:
+Build & start:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm build
+pnpm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Concepts
 
-## Deploy on Vercel
+-   Providers are composed in `app/layout.js`:
+    -   `AppProvider` wraps React Query and initializes auth store on mount.
+    -   `ThemeProvider` handles light/dark theme.
+    -   `AuthGuard` centralizes routing rules for public/auth/protected flows.
+-   Token storage: saved in `localStorage` (see `lib/utils/storage.js`) and injected by Axios `Authorization` header in `lib/api/client.js`.
+-   Auth flow is guided by `store/auth.js` profile steps and route helpers.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation Index
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   docs/ARCHITECTURE.md
+-   docs/ROUTES.md
+-   docs/STATE_MANAGEMENT.md
+-   docs/API_CLIENT.md
+-   docs/COMPONENTS.md
+-   docs/STYLING.md
+-   docs/VALIDATIONS.md
+-   docs/UTILITIES.md
